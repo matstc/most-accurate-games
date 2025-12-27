@@ -12,6 +12,10 @@
     <h1>Review Your Most Accurate Chess Games</h1>
     <p>Here are the most accurate {{ .TimeControl }} games for {{ .Username }} ranked by average centipawn loss.</p>
 
+    {{ if .Message }}
+    <p class="message">{{ .Message }}</p>
+    {{ end }}
+
     <table>
       {{ range .Results }}
       <tr>

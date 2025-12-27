@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"macg/app/acpl"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var resultsTemplate = template.Must(template.ParseFiles("results.html"))
@@ -29,6 +31,15 @@ type GameRow struct {
 	URL         string
 }
 
+type HTTPStatusError struct {
+	StatusCode int
+	Status     string
+}
+
+func (e *HTTPStatusError) Error() string {
+	return fmt.Sprintf("unexpected HTTP status %d (%s)", e.StatusCode, e.Status)
+}
+
 func retrieveResults(username string, timeControl string, ratedOnly bool, minPlies int) ([]acpl.GameACPL, error) {
 	url := "https://lichess.org/api/games/user/" + username + "?analysed=true&tags=true&clocks=false&evals=true&opening=true&literate=false&max=" + strconv.Itoa(maxGames) + "&perfType=" + timeControl
 
@@ -43,6 +54,13 @@ func retrieveResults(username string, timeControl string, ratedOnly bool, minPli
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, &HTTPStatusError{
+			StatusCode: resp.StatusCode,
+			Status:     resp.Status,
+		}
+	}
 
 	results, err := acpl.RankByACPL(resp.Body, username, minPlies)
 
@@ -72,7 +90,9 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 	timeControl := r.FormValue("time_control")
 	ratedOnly := r.FormValue("rated_only")
 	excludeMiniatures := r.FormValue("exclude_miniatures")
+	message := ""
 	minPlies := 0
+
 	if excludeMiniatures == "true" {
 		minPlies = 40
 	}
@@ -80,14 +100,18 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 	results, err := retrieveResults(username, timeControl, ratedOnly == "true", minPlies)
 
 	if err != nil {
-		http.Error(w, "Failed to retrieve games: "+err.Error(), http.StatusInternalServerError)
-		return
+		message = "Failed to retrieve games: " + err.Error()
+		results = []acpl.GameACPL{}
 	}
 
 	limit := maxResults
 
 	if limit > len(results) {
 		limit = len(results)
+	}
+
+	if len(results) == 0 {
+		message += "\n\nNo games found. Make sure the username is correct and that games with computer analysis are available."
 	}
 
 	rows := make([]GameRow, 0, limit)
@@ -118,10 +142,12 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 		Username    string
 		TimeControl string
 		Results     []GameRow
+		Message     string
 	}{
 		Username:    username,
 		TimeControl: timeControl,
 		Results:     rows,
+		Message:     message,
 	}
 
 	resultsTemplate.Execute(w, data)
@@ -137,6 +163,14 @@ func main() {
 
 	println("Starting server")
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      http.DefaultServeMux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 120 * time.Second,
+	}
+
+	log.Fatal(server.ListenAndServe())
+
 	println("Server stopped")
 }

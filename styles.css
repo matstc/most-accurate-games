@@ -150,6 +150,11 @@ a:visited {
   text-overflow: ellipsis;
 }
 
+.message {
+  color: #b00020;
+  white-space: pre-line;
+}
+
 .pulse {
   animation: pulse 2s ease-in-out infinite;
 }
