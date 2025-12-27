@@ -13,22 +13,23 @@ import (
 
 var resultsTemplate = template.Must(template.ParseFiles("results.html"))
 var maxGames = 1000
-var maxResults = 100
+var maxResults = 50
 
 type GameRow struct {
-	Rank        int
-	ACPL        float64
-	Date        string
-	White       string
-	WhiteElo    string
-	Black       string
-	BlackElo    string
-	ResultWhite string
-	ResultBlack string
-	Result      string
-	Opening     string
-	Moves       int
-	URL         string
+	GameId        string
+	Rank          int
+	ACPL          float64
+	FormattedDate string
+	White         string
+	WhiteElo      string
+	Black         string
+	BlackElo      string
+	ResultWhite   string
+	ResultBlack   string
+	Result        string
+	Opening       string
+	Moves         int
+	URL           string
 }
 
 type HTTPStatusError struct {
@@ -113,6 +114,8 @@ func retrieveResults(username string, timeControl string, ratedOnly bool, minPli
 func serveForm(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Serving form to %s", r.RemoteAddr)
 
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
 	http.ServeFile(w, r, "index.html")
 }
 
@@ -166,36 +169,55 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 		r := results[i]
 		g := r.Game
 		resultParts := strings.SplitN(acpl.TagValue(g, "Result"), "-", 2)
+		t, _ := time.Parse("2006.01.02", acpl.TagValue(g, "Date"))
 
 		rows = append(rows, GameRow{
-			Rank:        i + 1,
-			ACPL:        r.ACPL,
-			Date:        acpl.TagValue(g, "Date"),
-			White:       acpl.TagValue(g, "White"),
-			WhiteElo:    acpl.TagValue(g, "WhiteElo"),
-			Black:       acpl.TagValue(g, "Black"),
-			BlackElo:    acpl.TagValue(g, "BlackElo"),
-			ResultWhite: resultParts[0],
-			ResultBlack: resultParts[1],
-			Result:      acpl.TagValue(g, "Result"),
-			Opening:     strings.SplitN(acpl.TagValue(g, "Opening"), ":", 2)[0],
-			Moves:       len(g.Moves()) / 2,
-			URL:         acpl.TagValue(g, "Site"),
+			GameId:        acpl.TagValue(g, "GameId"),
+			Rank:          i + 1,
+			ACPL:          r.ACPL,
+			FormattedDate: t.Format("Jan 2, 2006"),
+			White:         acpl.TagValue(g, "White"),
+			WhiteElo:      acpl.TagValue(g, "WhiteElo"),
+			Black:         acpl.TagValue(g, "Black"),
+			BlackElo:      acpl.TagValue(g, "BlackElo"),
+			ResultWhite:   resultParts[0],
+			ResultBlack:   resultParts[1],
+			Result:        acpl.TagValue(g, "Result"),
+			Opening:       strings.SplitN(acpl.TagValue(g, "Opening"), ",", 2)[0],
+			Moves:         len(g.Moves()) / 2,
+			URL:           acpl.TagValue(g, "Site"),
 		})
 	}
 
-	data := struct {
-		Username    string
-		TimeControl string
-		Results     []GameRow
-		Message     string
-	}{
-		Username:    username,
-		TimeControl: timeControl,
-		Results:     rows,
-		Message:     message,
+	timeControlCharacter := ""
+
+	switch timeControl {
+	case "bullet":
+		timeControlCharacter = "➤"
+	case "blitz":
+		timeControlCharacter = "🔥"
+	case "rapid":
+		timeControlCharacter = "🐇"
+	case "classical":
+		timeControlCharacter = "🐢"
 	}
 
+	data := struct {
+		Username             string
+		TimeControl          string
+		TimeControlCharacter string
+		Results              []GameRow
+		Message              string
+	}{
+		Username:             username,
+		TimeControl:          timeControl,
+		TimeControlCharacter: timeControlCharacter,
+		Results:              rows,
+		Message:              message,
+	}
+
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
 	resultsTemplate.Execute(w, data)
 }
 

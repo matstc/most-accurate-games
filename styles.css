@@ -1,3 +1,9 @@
+:root {
+  --blue: #1565c0;
+  --red: #b00020;
+  --green: #0b8043;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -10,7 +16,7 @@ body {
 }
 
 body, p, td, th, input, select {
-  font-size: 12pt;
+  font-size: 14pt;
 }
 
 h1 {
@@ -21,9 +27,6 @@ h1 {
 main {
   max-width: 640px;
   margin: auto;
-  background: #fafafa;
-  padding: .5rem;
-  border: 1px solid #eee;
 }
 
 form {
@@ -33,9 +36,9 @@ form {
   }
 
   input[type=text] {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     display: block;
-    width: 120px;
+    width: 100%;
     padding: 0.1rem 0.2rem;
   }
 
@@ -46,17 +49,17 @@ form {
 
   select {
     display: block;
-    margin-bottom: 1rem;
-    width: 130px;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    padding: 3px;
   }
 
   button {
-    margin-top: 1.2rem;
+    margin-top: 2rem;
     padding: 0.5rem 1.5rem;
     font-size: 1rem;
     width: 100%;
     cursor: pointer;
-    border-radius: 4px;
   }
 }
 
@@ -65,12 +68,24 @@ table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
+  margin-top: 3rem;
 }
 
 table td {
   vertical-align: middle;
-  border-bottom: 1px solid #eee;
-  padding: 5px;
+  padding: 20px 5px;
+}
+
+table td:first-child {
+  padding-left: 10px;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+table td:last-child {
+  padding-right: 10px;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
 }
 
 table td.rank-cell {
@@ -81,18 +96,23 @@ table td.rank-cell {
 
 table td.rank-cell .badge {
   font-family: 'Courier New', Courier, monospace;
-  height: 20px;
-  width: 20px;
-  font-size: 10pt;
+  height: 22px;
+  width: 22px;
+  font-size: 12pt;
   letter-spacing: -1px;
   font-weight: bold;
   color: white;
-  background: #bbb;
+  background: #777;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 15px;
-  border-radius: 50%;
+  border-radius: 4px;
+}
+
+tr:hover {
+  background: #eaeaea;
+  cursor: pointer;
 }
 
 .back-button {
@@ -101,8 +121,13 @@ table td.rank-cell .badge {
   font-size: 90%;
 }
 
+a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
 a:visited {
-  color: LinkText;
+  color: var(--blue);
 }
 
 .result-card {
@@ -116,7 +141,8 @@ a:visited {
 
 .result-row--player {
   overflow: clip;
-  max-width: 92%;
+  max-width: 150%;
+  text-overflow: ellipsis;
 }
 
 .result-row > * {
@@ -125,29 +151,51 @@ a:visited {
 }
 
 .result-row--white-square {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   background-color: #fff;
   border: 1px solid #666;
   display: inline-block;
-  margin-right: 4px;
+  margin-right: 8px;
 }
 
 .result-row--black-square {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   background-color: #000;
   border: 1px solid #666;
   display: inline-block;
-  margin-right: 4px;
+  margin-right: 8px;
+}
+
+.result-row--result {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.result-row--result.winner {
+  color: var(--green);
+}
+
+.result-row--result.loser {
+  color: var(--red);
+}
+
+.acpl {
+  font-weight: bold;
+  margin-bottom: .5rem;
+}
+
+.game-id, .date, .moves {
+  font-size: 80%;
 }
 
 .opening {
   font-size: 80%;
-  max-width: 200px;
+  max-width: 320px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-top: 7px;
 }
 
 .message {
@@ -163,4 +211,10 @@ a:visited {
   0%   { opacity: 1; }
   50%  { opacity: 0.4; }
   100% { opacity: 1; }
+}
+
+@media (max-width: 420px) {
+  td {
+    font-size: 12pt;
+  }
 }

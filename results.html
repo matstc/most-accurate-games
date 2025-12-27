@@ -10,31 +10,40 @@
 <body>
   <main>
     <h1>Review Your Most Accurate Chess Games</h1>
-    <p>Here are the most accurate {{ .TimeControl }} games for {{ .Username }} ranked by average centipawn loss.</p>
+    <p>Here are the most accurate {{ .TimeControlCharacter }} {{ .TimeControl }} games for <a href="https://lichess.org/@/{{ .Username }}">{{ .Username }}</a> ranked by average centipawn loss.</p>
 
     {{ if .Message }}
     <p class="message">{{ .Message }}</p>
     {{ end }}
 
     <table>
+      {{ $root := . }}
       {{ range .Results }}
-      <tr>
+      <tr data-href="{{ .URL }}">
         <td class="rank-cell" style="width: 10%"><div class="badge">{{ .Rank }}</div></td>
-        <td style="width: 25%">
-          <div><a href="{{ .URL }}" target="_blank">{{ .Date }}</a></div>
-          <div>{{ printf "%.1f" .ACPL }} ACPL</div>
-          <div>{{ .Moves }} moves</div>
+        <td style="width: 30%">
+          <div class="acpl">{{ printf "%.0f" .ACPL }} ACPL</div>
+          <div class="date">{{ .FormattedDate }}</div>
+          <div class="moves">{{ .Moves }} moves</div>
         </td>
-        <td style="width: 65%">
+        <td style="width: 60%">
           <div class="result-card">
-            <div class="result-row"><div><div class="result-row--white-square"></div><div class="result-row--player">{{ .White }} ({{ .WhiteElo }})</div></div><div>{{ .ResultWhite }}</div></div>
-            <div class="result-row"><div><div class="result-row--black-square"></div><div class="result-row--player">{{ .Black }} ({{ .BlackElo }})</div></div><div>{{ .ResultBlack }}</div></div>
+            <div class="result-row"><div><div class="result-row--white-square"></div><div class="result-row--player">{{ .White }} ({{ .WhiteElo }})</div></div><div class="result-row--result {{ if and (eq .ResultWhite "1") (eq $root.Username .White) }}winner{{ end }} {{ if and (eq .ResultWhite "0") (eq $root.Username .White) }}loser{{ end }}">{{ .ResultWhite }}</div></div>
+            <div class="result-row"><div><div class="result-row--black-square"></div><div class="result-row--player">{{ .Black }} ({{ .BlackElo }})</div></div><div class="result-row--result {{ if and (eq .ResultBlack "1") (eq $root.Username .Black) }}winner{{ end }} {{ if and (eq .ResultBlack "0") (eq $root.Username .Black) }}loser{{ end }}">{{ .ResultBlack }}</div></div>
           </div>
           <div class="opening">{{ .Opening }}</div>
         </td>
       </tr>
       {{ end }}
     </table>
+
+    <script>
+      document.querySelectorAll("tr[data-href]").forEach(row => {
+        row.addEventListener("click", () => {
+          window.open(row.getAttribute("data-href"), "_blank")
+        })
+      })
+    </script>
 
     <a class="back-button" href="/">← Go back</a>
   </main>
