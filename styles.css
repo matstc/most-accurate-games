@@ -95,10 +95,6 @@ table td.rank-cell .badge {
   border-radius: 50%;
 }
 
-table td.rank-cell .badge .badge--number {
-  transform: translateY(1px);
-}
-
 .back-button {
   margin-top: 2rem;
   display: inline-block;
