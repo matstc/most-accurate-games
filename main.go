@@ -224,6 +224,15 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 func main() {
 	println("Defining handlers")
 
+	http.HandleFunc("/Atkinson-Hyperlegible-SIL-OPEN-FONT-LICENSE-Version%201.1-v2%20ACC.pdf", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "Atkinson-Hyperlegible-SIL-OPEN-FONT-LICENSE-Version 1.1-v2 ACC.pdf")
+	})
+	http.HandleFunc("/AtkinsonHyperlegibleNext-Regular.otf", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "AtkinsonHyperlegibleNext-Regular.otf")
+	})
+	http.HandleFunc("/AtkinsonHyperlegibleNext-Bold.otf", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "AtkinsonHyperlegibleNext-Bold.otf")
+	})
 	http.HandleFunc("/styles.css", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "styles.css") })
 	http.HandleFunc("/favicon.png", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "favicon.png") })
 	http.HandleFunc("/", serveForm)

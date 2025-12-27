@@ -20,3 +20,7 @@ docker run --rm -p 8080:8080 macg
 <hr>
 
 ![Screenshot](screenshot.png)
+
+# Credits
+
+See [font license](Atkinson-Hyperlegible-SIL-OPEN-FONT-LICENSE-Version 1.1-v2 ACC.pdf) for Atkinson Hyperlegible Next.
