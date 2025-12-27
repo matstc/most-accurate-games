@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review Your Most Accurate Chess Games</title>
+  <meta name="description" content="A tool to review a user's most accurate chess games on Lichess.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="favicon.png">
+</head>
+<body>
+
+  <main>
+    <h1>Review Your Most Accurate Chess Games</h1>
+    <p>Enter your Lichess username and press REVIEW. After some time, you should get a list of your most accurate games.</p>
+
+    <p>This tool will only retrieve games where computer analysis is already available and will only look at the last 1000 such games.</p>
+
+    <form action="/go" method="post">
+      <label for="username">Lichess username</label>
+      <input type="text" name="username" required>
+
+      <label for="time_control">Time control</label>
+      <select name="time_control" required>
+        <option value="bullet">bullet</option>
+        <option value="blitz" selected>blitz</option>
+        <option value="rapid">rapid</option>
+        <option value="classical">classical</option>
+      </select>
+
+      <button type="submit">REVIEW</button>
+    </form>
+  </main>
+
+</body>
+</html>

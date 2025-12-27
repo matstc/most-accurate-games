@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review Your Most Accurate Chess Games</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="favicon.png">
+</head>
+<body>
+  <main>
+    <h1>Review Your Most Accurate Chess Games</h1>
+    <p>Here are the most accurate {{ .TimeControl }} games for {{ .Username }} ranked by average centipawn loss.</p>
+
+    <table>
+      {{ range .Results }}
+      <tr>
+        <td class="rank-cell"><div class="badge">{{ .Rank }}</div></td>
+        <td>
+          <div><a href="{{ .URL }}" target="_blank">{{ .Date }}</a></div>
+          <div>{{ printf "%.1f" .ACPL }} ACPL</div>
+          <div>{{ .Moves }} moves</div>
+        </td>
+        <td>
+          <div class="result-card">
+            <div class="result-row"><div><div class="result-row--white-square"></div><div class="result-row--player">{{ .White }}</div></div><div>{{ .ResultWhite }}</div></div>
+            <div class="result-row"><div><div class="result-row--black-square"></div><div class="result-row--player">{{ .Black }}</div></div><div>{{ .ResultBlack }}</div></div>
+          </div>
+          <div class="opening">{{ .Opening }}</div>
+        </td>
+      </tr>
+      {{ end }}
+    </table>
+
+    <a class="back-button" href="/">← Go back</a>
+  </main>
+</body>
+</html>
