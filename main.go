@@ -36,6 +36,45 @@ type HTTPStatusError struct {
 	Status     string
 }
 
+type RateLimiter struct {
+	tokens chan struct{}
+}
+
+func NewRateLimiter(rps int, burst int) *RateLimiter {
+	rl := &RateLimiter{
+		tokens: make(chan struct{}, burst),
+	}
+
+	for i := 0; i < burst; i++ {
+		rl.tokens <- struct{}{}
+	}
+
+	go func() {
+		ticker := time.NewTicker(time.Second / time.Duration(rps))
+		defer ticker.Stop()
+		for range ticker.C {
+			select {
+			case rl.tokens <- struct{}{}:
+			default:
+				// bucket full
+			}
+		}
+	}()
+
+	return rl
+}
+
+func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-rl.tokens:
+			next.ServeHTTP(w, r)
+		default:
+			http.Error(w, "rate limit exceeded", http.StatusTooManyRequests)
+		}
+	})
+}
+
 func (e *HTTPStatusError) Error() string {
 	return fmt.Sprintf("unexpected HTTP status %d (%s)", e.StatusCode, e.Status)
 }
@@ -163,9 +202,11 @@ func main() {
 
 	println("Starting server")
 
+	limiter := NewRateLimiter(5, 10)
+
 	server := &http.Server{
 		Addr:         ":8080",
-		Handler:      http.DefaultServeMux,
+		Handler:      limiter.Middleware(http.DefaultServeMux),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 120 * time.Second,
 	}
