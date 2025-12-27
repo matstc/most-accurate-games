@@ -1,31 +1,32 @@
 package main
 
 import (
-	"log"
 	"html/template"
-	"net/http"
+	"log"
 	"macg/app/acpl"
+	"net/http"
 	"strconv"
 	"strings"
 )
 
 var resultsTemplate = template.Must(template.ParseFiles("results.html"))
-var maxGames = 100
+var maxGames = 1000
 var maxResults = 100
 
 type GameRow struct {
-	Rank   int
-	ACPL   float64
-	Date   string
-	White  string
-	Black  string
+	Rank        int
+	ACPL        float64
+	Date        string
+	White       string
+	Black       string
 	ResultWhite string
 	ResultBlack string
-	Result string
-	Opening string
-	Moves	int
-	URL    string
+	Result      string
+	Opening     string
+	Moves       int
+	URL         string
 }
+
 func retrieveResults(username string, timeControl string) (error, []acpl.GameACPL) {
 	url := "https://lichess.org/api/games/user/" + username + "?analysed=true&tags=true&clocks=false&evals=true&opening=true&literate=false&max=" + strconv.Itoa(maxGames) + "&perfType=" + timeControl
 
@@ -39,7 +40,7 @@ func retrieveResults(username string, timeControl string) (error, []acpl.GameACP
 
 	results, err := acpl.RankByACPL(resp.Body, username)
 
-	if (err != nil) {
+	if err != nil {
 		return err, nil
 	}
 
@@ -66,7 +67,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 	err, results := retrieveResults(username, timeControl)
 
 	if err != nil {
-		http.Error(w, "Failed to retrieve games: " + err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to retrieve games: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -84,28 +85,28 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 		resultParts := strings.SplitN(acpl.TagValue(g, "Result"), "-", 2)
 
 		rows = append(rows, GameRow{
-			Rank:   i + 1,
-			ACPL:   r.ACPL,
-			Date: acpl.TagValue(g, "Date"),
-			White:  acpl.TagValue(g, "White"),
-			Black:  acpl.TagValue(g, "Black"),
+			Rank:        i + 1,
+			ACPL:        r.ACPL,
+			Date:        acpl.TagValue(g, "Date"),
+			White:       acpl.TagValue(g, "White"),
+			Black:       acpl.TagValue(g, "Black"),
 			ResultWhite: resultParts[0],
 			ResultBlack: resultParts[1],
-			Result: acpl.TagValue(g, "Result"),
-			Opening: strings.SplitN(acpl.TagValue(g, "Opening"), ":", 2)[0],
-			Moves:   len(g.Moves()),
-			URL:    acpl.TagValue(g, "Site"),
+			Result:      acpl.TagValue(g, "Result"),
+			Opening:     strings.SplitN(acpl.TagValue(g, "Opening"), ":", 2)[0],
+			Moves:       len(g.Moves()),
+			URL:         acpl.TagValue(g, "Site"),
 		})
 	}
 
 	data := struct {
-		Username string
+		Username    string
 		TimeControl string
-		Results []GameRow
+		Results     []GameRow
 	}{
-		Username: username,
+		Username:    username,
 		TimeControl: timeControl,
-		Results: rows,
+		Results:     rows,
 	}
 
 	resultsTemplate.Execute(w, data)
