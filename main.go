@@ -111,10 +111,14 @@ func retrieveResults(username string, timeControl string, ratedOnly bool, minPli
 }
 
 func serveForm(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Serving form to %s", r.RemoteAddr)
+
 	http.ServeFile(w, r, "index.html")
 }
 
 func handleForm(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Handling form for %s", r.RemoteAddr)
+
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -124,6 +128,8 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
+
+	log.Printf("Received form from %s: %+v", r.RemoteAddr, r.Form)
 
 	username := r.FormValue("username")
 	timeControl := r.FormValue("time_control")
@@ -139,6 +145,7 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 	results, err := retrieveResults(username, timeControl, ratedOnly == "true", minPlies)
 
 	if err != nil {
+		log.Printf("Error retrieving results for %s: %v", r.RemoteAddr, err)
 		message = "Failed to retrieve games: " + err.Error()
 		results = []acpl.GameACPL{}
 	}
