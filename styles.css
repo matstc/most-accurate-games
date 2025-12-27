@@ -1,6 +1,10 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  padding: 2rem 1rem;
+  padding: 2rem 5px;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.5;
 }
@@ -57,6 +61,7 @@ form {
 }
 
 table {
+  table-layout: fixed;
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
@@ -65,7 +70,7 @@ table {
 table td {
   vertical-align: middle;
   border-bottom: 1px solid #eee;
-  padding: 5px 0;
+  padding: 5px;
 }
 
 table td.rank-cell {
@@ -75,18 +80,23 @@ table td.rank-cell {
 }
 
 table td.rank-cell .badge {
-  height: 18px;
-  width: 18px;
-  font-size: 9pt;
+  font-family: 'Courier New', Courier, monospace;
+  height: 20px;
+  width: 20px;
+  font-size: 10pt;
   letter-spacing: -1px;
   font-weight: bold;
   color: white;
-  background: #aaa;
+  background: #bbb;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 15px;
   border-radius: 50%;
+}
+
+table td.rank-cell .badge .badge--number {
+  transform: translateY(1px);
 }
 
 .back-button {
@@ -138,7 +148,18 @@ a:visited {
 
 .opening {
   font-size: 80%;
-  max-width: 120px;
+  max-width: 200px;
   white-space: nowrap;
-  overflow: clip;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.4; }
+  100% { opacity: 1; }
 }

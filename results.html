@@ -15,13 +15,13 @@
     <table>
       {{ range .Results }}
       <tr>
-        <td class="rank-cell"><div class="badge">{{ .Rank }}</div></td>
-        <td>
+        <td class="rank-cell" style="width: 10%"><div class="badge"><div class="badge--number">{{ .Rank }}</div></div></td>
+        <td style="width: 25%">
           <div><a href="{{ .URL }}" target="_blank">{{ .Date }}</a></div>
           <div>{{ printf "%.1f" .ACPL }} ACPL</div>
           <div>{{ .Moves }} moves</div>
         </td>
-        <td>
+        <td style="width: 65%">
           <div class="result-card">
             <div class="result-row"><div><div class="result-row--white-square"></div><div class="result-row--player">{{ .White }} ({{ .WhiteElo }})</div></div><div>{{ .ResultWhite }}</div></div>
             <div class="result-row"><div><div class="result-row--black-square"></div><div class="result-row--player">{{ .Black }} ({{ .BlackElo }})</div></div><div>{{ .ResultBlack }}</div></div>
