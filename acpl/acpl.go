@@ -132,7 +132,7 @@ func computeACPL(game *chess.Game, username string) (float64, bool) {
 	return totalLoss / float64(count), true
 }
 
-func RankByACPL(r io.Reader, username string) ([]GameACPL, error) {
+func RankByACPL(r io.Reader, username string, minPlies int) ([]GameACPL, error) {
 	scanner := bufio.NewScanner(r)
 	scanner.Split(splitPGN)
 
@@ -150,6 +150,10 @@ func RankByACPL(r io.Reader, username string) ([]GameACPL, error) {
 		}
 
 		game := chess.NewGame(opt)
+
+		if len(game.Moves()) < minPlies {
+			continue
+		}
 
 		acpl, ok := computeACPL(game, username)
 		if !ok {

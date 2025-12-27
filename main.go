@@ -18,7 +18,9 @@ type GameRow struct {
 	ACPL        float64
 	Date        string
 	White       string
+	WhiteElo    string
 	Black       string
+	BlackElo    string
 	ResultWhite string
 	ResultBlack string
 	Result      string
@@ -27,7 +29,7 @@ type GameRow struct {
 	URL         string
 }
 
-func retrieveResults(username string, timeControl string, ratedOnly bool) (error, []acpl.GameACPL) {
+func retrieveResults(username string, timeControl string, ratedOnly bool, minPlies int) ([]acpl.GameACPL, error) {
 	url := "https://lichess.org/api/games/user/" + username + "?analysed=true&tags=true&clocks=false&evals=true&opening=true&literate=false&max=" + strconv.Itoa(maxGames) + "&perfType=" + timeControl
 
 	if ratedOnly {
@@ -37,18 +39,18 @@ func retrieveResults(username string, timeControl string, ratedOnly bool) (error
 	resp, err := http.Get(url)
 
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 
-	results, err := acpl.RankByACPL(resp.Body, username)
+	results, err := acpl.RankByACPL(resp.Body, username, minPlies)
 
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
-	return nil, results
+	return results, nil
 }
 
 func serveForm(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +71,13 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	timeControl := r.FormValue("time_control")
 	ratedOnly := r.FormValue("rated_only")
-	err, results := retrieveResults(username, timeControl, ratedOnly == "true")
+	excludeMiniatures := r.FormValue("exclude_miniatures")
+	minPlies := 0
+	if excludeMiniatures == "true" {
+		minPlies = 40
+	}
+
+	results, err := retrieveResults(username, timeControl, ratedOnly == "true", minPlies)
 
 	if err != nil {
 		http.Error(w, "Failed to retrieve games: "+err.Error(), http.StatusInternalServerError)
@@ -94,12 +102,14 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			ACPL:        r.ACPL,
 			Date:        acpl.TagValue(g, "Date"),
 			White:       acpl.TagValue(g, "White"),
+			WhiteElo:    acpl.TagValue(g, "WhiteElo"),
 			Black:       acpl.TagValue(g, "Black"),
+			BlackElo:    acpl.TagValue(g, "BlackElo"),
 			ResultWhite: resultParts[0],
 			ResultBlack: resultParts[1],
 			Result:      acpl.TagValue(g, "Result"),
 			Opening:     strings.SplitN(acpl.TagValue(g, "Opening"), ":", 2)[0],
-			Moves:       len(g.Moves()),
+			Moves:       len(g.Moves()) / 2,
 			URL:         acpl.TagValue(g, "Site"),
 		})
 	}

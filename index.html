@@ -33,6 +33,11 @@
         <label for="rated_only"> Rated games only</label>
       </div>
 
+      <div style="display: flex; align-items: center;">
+        <input id="exclude_miniatures" type="checkbox" name="exclude_miniatures" value="true" checked>
+        <label for="exclude_miniatures"> Exclude miniatures (less than 20 moves)</label>
+      </div>
+
       <button type="submit">REVIEW</button>
       <div id="loading" style="width: 100%; text-align: center; font-size: 90%;" hidden>Loading… This might take a minute.</div>
     </form>
