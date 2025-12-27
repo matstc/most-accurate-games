@@ -28,8 +28,25 @@
         <option value="classical">classical</option>
       </select>
 
+      <div style="display: flex; align-items: center;">
+        <input id="rated_only" type="checkbox" name="rated_only" value="true" checked>
+        <label for="rated_only"> Rated games only</label>
+      </div>
+
       <button type="submit">REVIEW</button>
+      <div id="loading" style="width: 100%; text-align: center; font-size: 90%;" hidden>Loading… This might take a minute.</div>
     </form>
+
+    <script>
+      document.querySelector("form").addEventListener("submit", () => {
+        const form = document.querySelector("form")
+        const submitButton = form.querySelector("button[type='submit']")
+        submitButton.disabled = true
+
+        const loading = form.querySelector("#loading")
+        loading.hidden = false
+      })
+    </script>
   </main>
 
 </body>

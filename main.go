@@ -27,8 +27,12 @@ type GameRow struct {
 	URL         string
 }
 
-func retrieveResults(username string, timeControl string) (error, []acpl.GameACPL) {
+func retrieveResults(username string, timeControl string, ratedOnly bool) (error, []acpl.GameACPL) {
 	url := "https://lichess.org/api/games/user/" + username + "?analysed=true&tags=true&clocks=false&evals=true&opening=true&literate=false&max=" + strconv.Itoa(maxGames) + "&perfType=" + timeControl
+
+	if ratedOnly {
+		url += "&rated=true"
+	}
 
 	resp, err := http.Get(url)
 
@@ -64,7 +68,8 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	timeControl := r.FormValue("time_control")
-	err, results := retrieveResults(username, timeControl)
+	ratedOnly := r.FormValue("rated_only")
+	err, results := retrieveResults(username, timeControl, ratedOnly == "true")
 
 	if err != nil {
 		http.Error(w, "Failed to retrieve games: "+err.Error(), http.StatusInternalServerError)
