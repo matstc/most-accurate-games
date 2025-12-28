@@ -5,13 +5,14 @@ import (
 	"html/template"
 	"log"
 	"macg/app/acpl"
+	"macg/app/rate_limiter"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
-var resultsTemplate = template.Must(template.ParseFiles("results.html"))
+var templates = template.Must(template.ParseFiles("index.html", "results.html", "footer.html"))
 var maxGames = 1000
 var maxResults = 50
 
@@ -37,47 +38,13 @@ type HTTPStatusError struct {
 	Status     string
 }
 
-type RateLimiter struct {
-	tokens chan struct{}
-}
-
-func NewRateLimiter(rps int, burst int) *RateLimiter {
-	rl := &RateLimiter{
-		tokens: make(chan struct{}, burst),
-	}
-
-	for i := 0; i < burst; i++ {
-		rl.tokens <- struct{}{}
-	}
-
-	go func() {
-		ticker := time.NewTicker(time.Second / time.Duration(rps))
-		defer ticker.Stop()
-		for range ticker.C {
-			select {
-			case rl.tokens <- struct{}{}:
-			default:
-				// bucket full
-			}
-		}
-	}()
-
-	return rl
-}
-
-func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		select {
-		case <-rl.tokens:
-			next.ServeHTTP(w, r)
-		default:
-			http.Error(w, "rate limit exceeded", http.StatusTooManyRequests)
-		}
-	})
-}
-
 func (e *HTTPStatusError) Error() string {
 	return fmt.Sprintf("unexpected HTTP status %d (%s)", e.StatusCode, e.Status)
+}
+
+func setCacheHeaders(w http.ResponseWriter) {
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
 }
 
 func retrieveResults(username string, timeControl string, ratedOnly bool, minPlies int) ([]acpl.GameACPL, error) {
@@ -114,9 +81,10 @@ func retrieveResults(username string, timeControl string, ratedOnly bool, minPli
 func serveForm(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Serving form to %s", r.RemoteAddr)
 
-	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
-	w.Header().Set("Pragma", "no-cache")
-	http.ServeFile(w, r, "index.html")
+	setCacheHeaders(w)
+	if err := templates.ExecuteTemplate(w, "index.html", struct{}{}); err != nil {
+		log.Printf("Error rendering index template: %v", err)
+	}
 }
 
 func handleForm(w http.ResponseWriter, r *http.Request) {
@@ -182,7 +150,6 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			BlackElo:      acpl.TagValue(g, "BlackElo"),
 			ResultWhite:   resultParts[0],
 			ResultBlack:   resultParts[1],
-			Result:        acpl.TagValue(g, "Result"),
 			Opening:       strings.SplitN(acpl.TagValue(g, "Opening"), ",", 2)[0],
 			Moves:         len(g.Moves()) / 2,
 			URL:           acpl.TagValue(g, "Site"),
@@ -216,9 +183,10 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 		Message:              message,
 	}
 
-	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
-	w.Header().Set("Pragma", "no-cache")
-	resultsTemplate.Execute(w, data)
+	setCacheHeaders(w)
+	if err := templates.ExecuteTemplate(w, "results.html", data); err != nil {
+		log.Printf("Error rendering results template: %v", err)
+	}
 }
 
 func main() {
@@ -240,11 +208,9 @@ func main() {
 
 	println("Starting server")
 
-	limiter := NewRateLimiter(5, 10)
-
 	server := &http.Server{
 		Addr:         ":8080",
-		Handler:      limiter.Middleware(http.DefaultServeMux),
+		Handler:      rate_limiter.NewRateLimiter(5, 10).Middleware(http.DefaultServeMux),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 120 * time.Second,
 	}
