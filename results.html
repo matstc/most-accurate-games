@@ -10,7 +10,7 @@
 <body>
   <main>
     <h1>Review Your Most Accurate Chess Games</h1>
-    <p>Here are the most accurate {{ .TimeControl }} {{ .TimeControlCharacter }} games for <a href="https://lichess.org/@/{{ .Username }}">{{ .Username }}</a> ranked by average centipawn loss.</p>
+    <p>Here are the most accurate {{ .TimeControl }} {{ .TimeControlCharacter }} games for <a href="https://lichess.org/@/{{ .Username }}" target="_blank">{{ .Username }}</a> ranked by average centipawn loss.</p>
 
     {{ if .Message }}
     <p class="message">{{ .Message }}</p>
