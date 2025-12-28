@@ -102,6 +102,12 @@ func computeACPL(game *chess.Game, username string) (float64, bool) {
 			continue
 		}
 
+		if eval > 1000 {
+			eval = 1000
+		} else if eval < -1000 {
+			eval = -1000
+		}
+
 		whiteMove := i%2 == 0
 		playerMove := (whiteMove && isWhite) || (!whiteMove && isBlack)
 
